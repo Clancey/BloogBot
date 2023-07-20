@@ -29,7 +29,7 @@ namespace BloogBot.AI.SharedStates
         {
             var threat = container.FindThreat();
 
-            if (threat != null)
+            if (threat != null && !player.IsMounted)
             {
                 player.StopAllMovement();
                 botStates.Push(container.CreateMoveToTargetState(botStates, container, threat));

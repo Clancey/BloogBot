@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace BloogBot.AI
 {
+    public enum States
+    {
+        Resting,
+        Traveling,
+        Combat,
+        Interacting,
+    }
     public interface IBot
     {
         string Name { get; }

@@ -16,6 +16,7 @@ namespace BloogBot.UI
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        public static MainViewModel Current {get; private set; }
         const string COMMAND_ERROR = "An error occured. See Console for details.";
 
         static readonly string[] CityNames = { "Orgrimmar", "Thunder Bluff", "Undercity", "Stormwind", "Darnassus", "Ironforge" };
@@ -27,7 +28,8 @@ namespace BloogBot.UI
 
         public MainViewModel()
         {
-            var currentFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			Current = this;
+			var currentFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var botSettingsFilePath = Path.Combine(currentFolder, "botSettings.json");
             botSettings = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(botSettingsFilePath));
             UpdatePropertiesWithAttribute(typeof(BotSettingAttribute));

@@ -9,7 +9,7 @@ namespace BloogBot.UI
         protected override void OnStartup(StartupEventArgs e)
         {
 #if DEBUG
-            Debugger.Launch();
+           Debugger.Launch();
 #endif
 
             WardenDisabler.Initialize();

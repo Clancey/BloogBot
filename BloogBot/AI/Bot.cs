@@ -55,7 +55,12 @@ namespace BloogBot.AI
                 {
                     currentLevel = ObjectManager.Player.Level;
 
-                    botStates.Push(new GrindState(botStates, container));
+					//Reset the food!
+					(var food, var water) = GetCurrentFoodAndWater();
+					container.BotSettings.Food = food;
+					container.BotSettings.Drink = water;
+
+					botStates.Push(new GrindState(botStates, container));
 
                     currentState = botStates.Peek().GetType();
                     currentStateStartTime = Environment.TickCount;
@@ -72,7 +77,7 @@ namespace BloogBot.AI
                 Logger.Log(e);
             }
         }
-        
+
         public void Travel(IDependencyContainer container, bool reverseTravelPath, Action callback)
         {
             try
@@ -95,7 +100,12 @@ namespace BloogBot.AI
                     .ToList()
                     .IndexOf(closestWaypoint);
 
-                ThreadSynchronizer.RunOnMainThread(() =>
+				//Reset the food!
+				(var food, var water) = GetCurrentFoodAndWater();
+				container.BotSettings.Food = food;
+				container.BotSettings.Drink = water;
+
+				ThreadSynchronizer.RunOnMainThread(() =>
                 {
                     currentLevel = ObjectManager.Player.Level;
 
@@ -125,7 +135,7 @@ namespace BloogBot.AI
             }
         }
 
-        public void StartPowerlevel(IDependencyContainer container,Action stopCallback)
+        public void StartPowerlevel(IDependencyContainer container, Action stopCallback)
         {
             this.stopCallback = stopCallback;
 
@@ -310,6 +320,10 @@ namespace BloogBot.AI
                         {
                             currentLevel = player.Level;
                             DiscordClientWrapper.SendMessage($"Ding! {player.Name} is now level {player.Level}!");
+                            //Reset the food!
+                            (var food,var water) = GetCurrentFoodAndWater();
+                            container.BotSettings.Food = food;
+                            container.BotSettings.Drink = water;
                         }
 
                         player.AntiAfk();
@@ -432,7 +446,8 @@ namespace BloogBot.AI
                                 botStates.Push(new TravelState(botStates, container, currentHotspot.TravelPath.Waypoints, 0));
                                 botStates.Push(new MoveToPositionState(botStates, container, currentHotspot.TravelPath.Waypoints[0]));
                             }
-                            
+
+                            botStates.Push(new EquipBagsState(botStates, container));
                             botStates.Push(new SellItemsState(botStates, container, currentHotspot.Innkeeper.Name));
                             botStates.Push(new MoveToPositionState(botStates, container, currentHotspot.Innkeeper.Position));
                             container.CheckForTravelPath(botStates, true);
@@ -444,7 +459,7 @@ namespace BloogBot.AI
                             botStates.Peek()?.Update();
                         }
                     });
-                    
+
                     await Task.Delay(25);
 
                     container.Probe.UpdateLatency = $"{stopwatch.ElapsedMilliseconds}ms";
@@ -454,6 +469,34 @@ namespace BloogBot.AI
                     Logger.Log(e + "\n");
                 }
             }
+        }
+
+
+        static List<(int MiniumLevel, string FoodName, string DrinkName)> FoodAndDrink = new List<(int MiniumLevel, string FoodName, string DrinkName)>
+        {
+			(75,"Sweet Potato Bread","Honeymint Tea"),
+			(70,"Pungent Seal Whey","Purified Draenic Water|Sweetened Goat's Milk"),
+			(65,"Crusty Flatbread","Purified Draenic Water|Sweetened Goat's Milk"),
+			(60,"Smoked Talbuk Venison","Filtered Draenic Water"),
+			(55,"Smoked Talbuk Venison","Morning Glory Dew"),
+			(45,"Homemade Cherry Pie","Morning Glory Dew"),
+			(35,"Cured Ham Steak","Moonberry Juice"),
+			(25,"Wild Hog Shank","Sweet Nectar"),
+			(15,"Mutton Chop","Melon Juice"),
+			(5,"Haunch of Meat","Ice Cold Milk"),
+			(1,"Tough Jerky","Refreshing Spring Water"),
+		};
+        public virtual (string FoodName, string DrinkName) GetCurrentFoodAndWater()
+        {
+            foreach (var food in FoodAndDrink)
+			{
+				if (food.MiniumLevel <= currentLevel)
+                {
+                    return (food.FoodName, food.DrinkName);
+                }
+            }
+            //This will never ever happen
+            return ("","");
         }
 
         void LogToFile(string text)

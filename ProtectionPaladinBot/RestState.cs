@@ -42,7 +42,8 @@ namespace ProtectionPaladinBot
                 botStates.Pop();
 
                 var drinkCount = drinkItem == null ? 0 : Inventory.GetItemCount(drinkItem.ItemId);
-                if (!InCombat && drinkCount == 0 && !container.RunningErrands)
+                bool needsDrink = drinkCount == 0;
+                if (!InCombat && needsDrink && !container.RunningErrands)
                 {
                     var drinkToBuy = 28 - (drinkCount / stackCount);
                     var itemsToBuy = new Dictionary<string, int>
@@ -58,7 +59,8 @@ namespace ProtectionPaladinBot
                     }
 
                     botStates.Push(new BuyItemsState(botStates, currentHotspot.Innkeeper.Name, itemsToBuy));
-                    botStates.Push(new SellItemsState(botStates, container, currentHotspot.Innkeeper.Name));
+					botStates.Push(new EquipBagsState(botStates, container));
+					botStates.Push(new SellItemsState(botStates, container, currentHotspot.Innkeeper.Name));
                     botStates.Push(new MoveToPositionState(botStates, container, currentHotspot.Innkeeper.Position));
                     container.CheckForTravelPath(botStates, true, false);
                     container.RunningErrands = true;
